@@ -1,0 +1,893 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e0d0c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vault">
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+<title>Vault</title>
+<style>
+:root{
+  --bg:#0e0d0c;--surface:#171513;--surface-2:#1f1c19;--surface-3:#2a2622;
+  --line:#2a2622;--line-2:#3a3530;
+  --text:#efe9e1;--muted:#a39a90;--faint:#716961;
+  --accent:#d6a86e;--accent-2:#e9c79a;--accent-ink:#1b1309;--accent-bg:rgba(214,168,110,.11);
+  --said:#d6a86e;--task:#9cbf98;--note:#93abcf;--danger:#e58873;
+  --safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px);
+  --serif:ui-serif,"New York","Iowan Old Style","Palatino",Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,system-ui,"Segoe UI",Roboto,sans-serif;
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased;text-size-adjust:100%}
+body{min-height:100dvh;overscroll-behavior-y:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;touch-action:manipulation}
+svg{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+.app{max-width:560px;margin:0 auto}
+
+/* Kopf + Suche */
+.top{position:sticky;top:0;z-index:20;padding:calc(var(--safe-t) + 12px) 16px 12px;background:linear-gradient(var(--bg) 82%,rgba(14,13,12,0))}
+.title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.title{font-family:var(--serif);font-size:28px;line-height:1.1;font-weight:600;letter-spacing:-.01em;margin:2px 0 0}
+.icon-btn{width:44px;height:44px;display:grid;place-items:center;border-radius:12px;color:var(--muted)}
+.icon-btn:active{background:var(--surface-2)}
+.search{display:flex;align-items:center;gap:10px;height:48px;padding:0 6px 0 14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;transition:border-color .15s}
+.search:focus-within{border-color:var(--line-2)}
+.search svg{color:var(--faint)}
+.search input{flex:1;min-width:0;height:100%;background:none;border:0;color:var(--text);font:inherit;font-size:16px;outline:none;-webkit-appearance:none}
+.search input::placeholder{color:var(--faint)}
+.search input::-webkit-search-cancel-button{display:none}
+.clear{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;color:var(--muted);visibility:hidden}
+.clear.on{visibility:visible}
+
+main{padding:4px 16px calc(var(--safe-b) + 120px)}
+
+/* Navigation */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(4,1fr);max-width:560px;margin:0 auto;padding:6px 8px calc(var(--safe-b) + 6px);background:rgba(14,13,12,.9);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--line)}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;min-height:52px;font-size:11px;color:var(--faint);letter-spacing:.02em}
+.tab svg{width:22px;height:22px}
+.tab.on{color:var(--accent-2)}
+.fab{position:fixed;z-index:31;right:max(16px,calc(50% - 264px));bottom:calc(var(--safe-b) + 80px);width:56px;height:56px;border-radius:18px;display:grid;place-items:center;background:var(--accent);color:var(--accent-ink);box-shadow:0 10px 30px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.06) inset;transition:transform .15s var(--ease)}
+.fab svg{width:24px;height:24px;stroke-width:2.2}
+.fab:active{transform:scale(.94)}
+
+/* Abschnitte */
+.page-h{margin:10px 2px 14px}
+.page-h h1{font-family:var(--serif);font-size:22px;font-weight:600;margin:0}
+.page-h p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;margin:26px 2px 10px}
+.sec-h h2{font-family:var(--serif);font-size:18px;font-weight:600;margin:0}
+.sec-h .more{font-size:14px;color:var(--muted);padding:6px 0 6px 12px}
+.group-h{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:22px 2px 8px;font-weight:600}
+.group-h:first-child{margin-top:6px}
+
+/* Kacheln */
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}
+.tile{display:flex;align-items:baseline;gap:8px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.tile:active{background:var(--surface-2)}
+.tile b{font-family:var(--serif);font-size:21px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.tile span{display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--muted)}
+.tile span .dot{display:none}
+
+/* Kompakte Liste (Übersicht) */
+.list{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.row{position:relative;display:flex;align-items:center;gap:12px;min-height:62px;padding:10px 8px 10px 14px;border-top:1px solid var(--line);transition:background .12s}
+.row:first-child{border-top:0}
+.row:active{background:var(--surface-2)}
+.r-lead{flex:none;width:26px;display:grid;place-items:center}
+.r-ic svg{width:19px;height:19px}
+.r-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.r-ttl{font-size:15.5px;font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r-quote{font-family:var(--serif);font-weight:500;font-size:16px}
+.r-sub{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--faint);white-space:nowrap;overflow:hidden}
+.r-sub .sep{opacity:.6}
+.r-pin{display:inline-flex;color:var(--accent)}.r-pin svg{width:13px;height:13px}
+.r-copy{flex:none;width:44px;height:44px;display:grid;place-items:center;border-radius:12px;color:var(--muted);background:var(--surface-2)}
+.r-copy svg{width:18px;height:18px}
+.r-copy:active{background:var(--surface-3);color:var(--text)}
+.row.done .chk{background:var(--task);border-color:var(--task)}
+.row.done .r-ttl{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--faint)}
+.row.leaving{opacity:0;transform:translateX(16px);height:0!important;min-height:0;padding-top:0;padding-bottom:0;border-width:0;overflow:hidden;transition:opacity .2s,transform .25s var(--ease),height .3s var(--ease) .05s,min-height .3s var(--ease) .05s,padding .3s var(--ease) .05s}
+.dot{width:7px;height:7px;border-radius:50%;flex:none;background:var(--c,var(--accent))}
+
+/* Karten */
+.card{position:relative;display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 14px 12px;margin-bottom:10px;transition:background .12s}
+.card:active{background:var(--surface-2)}
+.card .pin{position:absolute;top:12px;right:12px;color:var(--accent);opacity:.8}
+.card .pin svg{width:15px;height:15px}
+.quote{font-family:var(--serif);font-size:17px;line-height:1.5;margin:0;padding-right:18px;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
+.quote::before{content:"„";color:var(--accent);margin-right:1px}
+.quote::after{content:"“";color:var(--accent);margin-left:1px}
+.ctx{margin:6px 0 0;font-size:14px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ttl{font-size:16px;font-weight:600;line-height:1.35;margin:0;padding-right:18px}
+.exc{margin:4px 0 0;font-size:14.5px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:10px;font-size:12.5px;color:var(--faint)}
+.kind{display:inline-flex;align-items:center;gap:6px}
+.tag{display:inline-flex;align-items:center;font-size:12.5px;color:var(--accent-2);background:var(--accent-bg);padding:3px 9px;border-radius:999px;line-height:1.3}
+button.tag{min-height:28px}
+.badge{display:inline-flex;align-items:center;font-size:12px;font-weight:600;color:var(--task);background:rgba(156,191,152,.12);padding:3px 8px;border-radius:7px}
+.due{color:var(--muted)}
+.due.late{color:var(--danger)}
+.typeline{display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:6px;font-weight:600}
+
+.card.task{display:grid;grid-template-columns:30px 1fr;gap:10px}
+.chk{width:26px;height:26px;margin-top:-1px;border-radius:50%;border:2px solid var(--line-2);display:grid;place-items:center;color:var(--accent-ink);position:relative}
+.chk::after{content:"";position:absolute;inset:-10px}
+.chk svg{width:15px;height:15px;stroke-width:3}
+.chk{transition:background .2s,border-color .2s}
+.card.done .chk{background:var(--task);border-color:var(--task)}
+.chk.pop{animation:pop .35s var(--ease)}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(1)}}
+.card.task .ttl{transition:color .2s}
+.card.leaving{opacity:0;transform:translateX(16px);height:0!important;padding-top:0;padding-bottom:0;margin-bottom:0;border-width:0;overflow:hidden;transition:opacity .2s,transform .25s var(--ease),height .3s var(--ease) .05s,padding .3s var(--ease) .05s,margin .3s var(--ease) .05s}
+.card.done .ttl{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--faint)}
+.draft{margin-top:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 10px 10px 12px}
+.draft p{margin:0 0 10px;font-size:14.5px;color:var(--muted);white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.copy-btn{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 13px;border-radius:10px;background:var(--surface-3);font-size:14px;font-weight:500;color:var(--text)}
+.copy-btn svg{width:16px;height:16px}
+.copy-btn:active{background:var(--line-2)}
+
+mark{background:rgba(214,168,110,.28);color:var(--accent-2);border-radius:3px;padding:0 1px}
+
+/* Chips & Segmente */
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 16px 4px;margin:0 -16px 12px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line-2);font-size:14px;color:var(--muted);white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.chip.on{background:var(--text);border-color:var(--text);color:var(--bg)}
+.chip small{font-size:12px;opacity:.7;font-variant-numeric:tabular-nums}
+.tagcloud{display:flex;flex-wrap:wrap;gap:8px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:14px}
+.seg button{height:38px;border-radius:9px;font-size:14px;color:var(--muted);font-weight:500}
+.seg button.on{background:var(--surface-3);color:var(--text)}
+
+/* Leer */
+.empty{text-align:center;padding:36px 16px;color:var(--muted)}
+.empty h3{font-family:var(--serif);font-size:19px;color:var(--text);margin:0 0 6px;font-weight:600}
+.empty p{margin:0 auto 18px;max-width:300px;font-size:14.5px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 16px;border-radius:12px;background:var(--surface-3);font-size:15px;font-weight:500}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:var(--danger)}
+.btn:active{filter:brightness(1.12)}
+.btn svg{width:18px;height:18px}
+.starter{display:grid;gap:8px;max-width:320px;margin:0 auto}
+.starter .btn{justify-content:flex-start;height:52px;background:var(--surface);border:1px solid var(--line)}
+
+.banner{display:flex;align-items:center;gap:12px;background:var(--accent-bg);border:1px solid rgba(214,168,110,.25);border-radius:14px;padding:12px 14px;margin-top:12px;font-size:14px;color:var(--accent-2);width:100%;text-align:left}
+
+/* Sheet */
+.backdrop{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .25s}
+.backdrop.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;z-index:41;left:0;right:0;bottom:0;top:calc(var(--safe-t) + 10px);max-width:560px;margin:0 auto;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line-2);border-bottom:0;border-radius:20px 20px 0 0;transform:translateY(105%);transition:transform .34s var(--ease);visibility:hidden}
+.sheet.open{transform:none;visibility:visible}
+.sheet-h{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:56px;padding:0 6px;border-bottom:1px solid var(--line);flex:none}
+.sheet-h h2{font-size:15px;font-weight:600;margin:0;text-align:center}
+.sheet-h .l{justify-self:start}.sheet-h .r{justify-self:end}
+.hbtn{height:44px;padding:0 12px;border-radius:10px;font-size:16px;color:var(--muted)}
+.hbtn.strong{color:var(--accent-2);font-weight:600}
+.hbtn:active{background:var(--surface-2)}
+.sheet-b{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px 16px calc(var(--safe-b) + 28px);overscroll-behavior:contain}
+
+/* Formular */
+.field{margin-bottom:18px}
+.field>label,.lbl{display:block;font-size:13px;color:var(--muted);margin:0 0 7px 2px;font-weight:500}
+.field input,.field textarea{width:100%;background:var(--bg);border:1px solid var(--line-2);border-radius:12px;color:var(--text);font:inherit;font-size:16px;line-height:1.5;padding:12px 13px;outline:none;-webkit-appearance:none;transition:border-color .15s}
+.field textarea{min-height:120px;resize:none;display:block}
+.field textarea.big{min-height:220px}
+.field input:focus,.field textarea:focus{border-color:var(--accent)}
+.field input[type=date]{min-height:48px}
+.field .invalid{border-color:var(--danger)}
+.err{color:var(--danger);font-size:13px;margin:6px 2px 0}
+.hint{color:var(--faint);font-size:12.5px;margin:6px 2px 0}
+.sugg{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.kinds{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.kinds button{height:40px;border-radius:10px;border:1px solid var(--line-2);font-size:14px;color:var(--muted)}
+.kinds button.on{border-color:var(--task);color:var(--task);background:rgba(156,191,152,.1)}
+form[data-type] .grp{display:none}
+form[data-type=said] .g-said,form[data-type=task] .g-task,form[data-type=note] .g-note{display:block}
+
+/* Detail */
+.d-type{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);font-weight:600}
+.d-quote{font-family:var(--serif);font-size:21px;line-height:1.5;margin:14px 0 0;white-space:pre-wrap;word-wrap:break-word}
+.d-quote::before{content:"„";color:var(--accent)}.d-quote::after{content:"“";color:var(--accent)}
+.d-title{font-family:var(--serif);font-size:23px;line-height:1.3;font-weight:600;margin:10px 0 0;word-wrap:break-word}
+.d-body{margin:14px 0 0;font-size:16px;line-height:1.6;white-space:pre-wrap;word-wrap:break-word}
+.d-sec{margin-top:22px}
+.d-sec .lbl{margin-bottom:8px}
+.d-box{background:var(--bg);border:1px solid var(--line-2);border-radius:14px;padding:14px;font-size:16px;line-height:1.55;white-space:pre-wrap;word-wrap:break-word;user-select:text;-webkit-user-select:text}
+.ilt{color:var(--accent-2);font:inherit;display:inline}
+.d-meta{margin-top:22px;font-size:13px;color:var(--faint);line-height:1.7}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:22px}
+.actions .wide{grid-column:1/-1}
+
+.set-sec{margin-bottom:26px}
+.set-sec h3{font-family:var(--serif);font-size:18px;margin:0 0 6px;font-weight:600}
+.set-sec p{margin:0 0 12px;font-size:14.5px;color:var(--muted)}
+.set-grid{display:grid;gap:8px}
+
+/* Toast */
+.toast{position:fixed;z-index:60;left:50%;bottom:calc(var(--safe-b) + 150px);transform:translate(-50%,16px);opacity:0;pointer-events:none;display:flex;align-items:center;gap:14px;max-width:calc(100% - 32px);padding:11px 16px;border-radius:12px;background:var(--text);color:var(--bg);font-size:14.5px;font-weight:500;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:opacity .2s,transform .25s var(--ease)}
+.toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{font-weight:700;color:#7a4f18;padding:4px 0}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="title-row">
+      <div>
+        <div class="eyebrow">Vault</div>
+        <div class="title" id="vaultName">Viviane</div>
+      </div>
+      <button class="icon-btn" data-settings aria-label="Einstellungen"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    </div>
+    <label class="search">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Alles durchsuchen … oder #tag" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" aria-label="Suche">
+      <button type="button" class="clear" id="qClear" aria-label="Suche leeren"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </label>
+  </header>
+
+  <main id="view"></main>
+
+  <nav class="tabs" aria-label="Bereiche">
+    <button class="tab" data-tab="home"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Übersicht</button>
+    <button class="tab" data-tab="said"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>Gesagt</button>
+    <button class="tab" data-tab="task"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>Aufgaben</button>
+    <button class="tab" data-tab="note"><svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>Notizen</button>
+  </nav>
+  <button class="fab" data-new aria-label="Neuer Eintrag"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+</div>
+
+<div class="backdrop" id="backdrop"></div>
+<section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-hidden="true"></section>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+
+<script>
+(() => {
+'use strict';
+
+/* ---------- Daten ---------- */
+const KEY = 'vault.v1';
+const TYPE = {
+  said: { label: 'Gesagt', one: 'Gesagt', c: 'var(--said)' },
+  task: { label: 'Aufgaben', one: 'Aufgabe', c: 'var(--task)' },
+  note: { label: 'Notizen', one: 'Notiz', c: 'var(--note)' }
+};
+const KINDS = [['sagen', 'Sagen'], ['fragen', 'Fragen'], ['schicken', 'Schicken'], ['machen', 'Erledigen']];
+const KIND = Object.fromEntries(KINDS);
+
+const defaults = () => ({ items: [], settings: { name: 'Viviane', lastBackup: null } });
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY));
+    if (d && Array.isArray(d.items)) return { items: d.items, settings: Object.assign(defaults().settings, d.settings || {}) };
+  } catch (e) {}
+  return defaults();
+}
+let db = load();
+let persistAsked = false;
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(db)); }
+  catch (e) { toast('Konnte nicht speichern. Mach bitte ein Backup.'); }
+  if (!persistAsked && navigator.storage && navigator.storage.persist) { persistAsked = true; navigator.storage.persist().catch(() => {}); }
+}
+
+const st = { tab: 'home', q: '', qType: 'all', taskFilter: 'open', noteTag: null };
+let editing = null, edType = 'said', edKind = 'sagen';
+const pending = new Map(); // Aufgaben, die gerade abgehakt werden (id -> Timer)
+
+/* ---------- Helfer ---------- */
+const $ = s => document.querySelector(s);
+const view = $('#view'), sheet = $('#sheet'), backdrop = $('#backdrop'), qInput = $('#q');
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const norm = s => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const byId = id => db.items.find(i => i.id === id);
+const pad = n => String(n).padStart(2, '0');
+const isoOf = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const todayISO = () => isoOf(new Date());
+
+function fmtISO(iso, withYear) {
+  if (!iso) return '';
+  const d = new Date(iso + 'T12:00:00');
+  const y = withYear || d.getFullYear() !== new Date().getFullYear();
+  return d.toLocaleDateString('de-CH', { day: 'numeric', month: 'short', ...(y ? { year: 'numeric' } : {}) });
+}
+function relTs(ts) {
+  const d = new Date(ts), t = todayISO(), iso = isoOf(d);
+  const y = new Date(); y.setDate(y.getDate() - 1);
+  if (iso === t) return 'heute';
+  if (iso === isoOf(y)) return 'gestern';
+  return fmtISO(iso);
+}
+function fullTs(ts) {
+  return new Date(ts).toLocaleString('de-CH', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+/* ---------- Tags ---------- */
+function parseTags(str) {
+  return [...new Set(String(str || '').split(/[\s,;]+/).map(t => t.replace(/^#+/, '').toLowerCase().trim()).filter(Boolean))];
+}
+function inlineTags(text) {
+  const out = [], re = /#([\p{L}\p{N}_-]+)/gu; let m;
+  while ((m = re.exec(text || ''))) out.push(m[1].toLowerCase());
+  return out;
+}
+function itemTags(it) {
+  return [...new Set([...(it.tags || []), ...inlineTags(it.title), ...inlineTags(it.body), ...inlineTags(it.context), ...inlineTags(it.draft), ...inlineTags(it.note)])];
+}
+function tagCounts(items = db.items) {
+  const m = new Map();
+  items.forEach(it => itemTags(it).forEach(t => m.set(t, (m.get(t) || 0) + 1)));
+  return [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+}
+
+/* ---------- Suche ---------- */
+function hay(it) {
+  return norm([it.title, it.body, it.context, it.draft, it.note, KIND[it.kind] || '', TYPE[it.type].one, itemTags(it).map(t => '#' + t).join(' ')].join(' \n '));
+}
+function tokens(q) { return norm(q).split(/\s+/).filter(Boolean); }
+function search(q) {
+  const toks = tokens(q);
+  if (!toks.length) return [];
+  const res = [];
+  for (const it of db.items) {
+    const tags = itemTags(it).map(norm), h = hay(it), title = norm(it.title);
+    let score = 0, ok = true;
+    for (const t of toks) {
+      if (t.startsWith('#')) {
+        const tt = t.slice(1); if (!tt) continue;
+        if (tags.some(g => g === tt)) score += 6;
+        else if (tags.some(g => g.startsWith(tt))) score += 4;
+        else { ok = false; break; }
+      } else {
+        if (!h.includes(t)) { ok = false; break; }
+        score += 1;
+        if (title.includes(t)) score += 3;
+        if (tags.includes(t)) score += 2;
+      }
+    }
+    if (ok) res.push({ it, score });
+  }
+  res.sort((a, b) => b.score - a.score || b.it.updated - a.it.updated);
+  return res.map(r => r.it);
+}
+const DIA = { a: 'aàáâäãå', e: 'eèéêë', i: 'iìíîï', o: 'oòóôöõ', u: 'uùúûü', c: 'cç', n: 'nñ', s: 'sß' };
+function tokRe(q) {
+  const parts = tokens(q).map(t => t.replace(/^#/, '')).filter(Boolean)
+    .map(t => [...t].map(ch => DIA[ch] ? `[${DIA[ch]}]` : ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join(''));
+  return parts.length ? new RegExp('(' + parts.join('|') + ')', 'giu') : null;
+}
+function hl(text, re) {
+  text = String(text ?? '');
+  if (!re) return esc(text);
+  return text.split(re).map((p, i) => i % 2 ? `<mark>${esc(p)}</mark>` : esc(p)).join('');
+}
+function snippet(text, re, len = 150) {
+  text = String(text || '');
+  let i = 0;
+  if (re) { re.lastIndex = 0; const m = re.exec(text); if (m) i = m.index; re.lastIndex = 0; }
+  if (text.length <= len && i < 60) return text;
+  let s = Math.max(0, i - 40);
+  if (s > 0) { const nl = text.lastIndexOf('\n', i); if (nl >= s - 20 && nl < i) s = nl + 1; else { const sp = text.indexOf(' ', s); if (sp > 0 && sp < i) s = sp + 1; } }
+  text = s > 0 ? text.replace(/\n/g, ' ') : text;
+  return (s > 0 ? '…' : '') + text.slice(s, s + len) + (s + len < text.length ? '…' : '');
+}
+
+/* ---------- Icons ---------- */
+const I = {
+  check: '<svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>',
+  copy: '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>',
+  pin: '<svg viewBox="0 0 24 24"><path d="M12 17v5M9 3h6l-1 6 4 4H6l4-4z"/></svg>',
+  edit: '<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>',
+  trash: '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
+  down: '<svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
+  up: '<svg viewBox="0 0 24 24"><path d="M12 20V9M7 14l5-5 5 5M5 4h14"/></svg>',
+  said: '<svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>',
+  task: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>',
+  note: '<svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>',
+  shield: '<svg viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/></svg>'
+};
+
+/* ---------- Karten ---------- */
+function tagsHtml(it, max = 4) {
+  const t = itemTags(it);
+  return t.slice(0, max).map(x => `<span class="tag">#${esc(x)}</span>`).join('') + (t.length > max ? `<span>+${t.length - max}</span>` : '');
+}
+function dueHtml(it) {
+  if (!it.due || it.done) return '';
+  const t = todayISO();
+  if (it.due < t) return `<span class="due late">überfällig · ${fmtISO(it.due)}</span>`;
+  if (it.due === t) return `<span class="due late">heute</span>`;
+  return `<span class="due">bis ${fmtISO(it.due)}</span>`;
+}
+const pinHtml = it => it.pinned ? `<span class="pin" aria-label="Angeheftet">${I.pin}</span>` : '';
+function typeline(it) {
+  return `<div class="typeline"><span class="dot" style="--c:${TYPE[it.type].c}"></span>${TYPE[it.type].one}</div>`;
+}
+
+function cardSaid(it, re, showType) {
+  return `<article class="card said" data-open="${it.id}">${pinHtml(it)}${showType ? typeline(it) : ''}
+    <p class="quote">${hl(re ? snippet(it.body, re, 260) : it.body, re)}</p>
+    ${it.context ? `<p class="ctx">${hl(it.context, re)}</p>` : ''}
+    <div class="meta"><span>${fmtISO(it.date)}</span>${tagsHtml(it)}</div></article>`;
+}
+function cardTask(it, re, showType) {
+  const looksDone = it.done || pending.has(it.id);
+  return `<article class="card task${looksDone ? ' done' : ''}" data-open="${it.id}" data-card="${it.id}">
+    <button class="chk" data-toggle="${it.id}" aria-label="${looksDone ? 'Wieder öffnen' : 'Erledigt'}">${looksDone ? I.check : ''}</button>
+    <div>${pinHtml(it)}${showType ? typeline(it) : ''}
+      <h3 class="ttl">${hl(it.title, re)}</h3>
+      ${it.note ? `<p class="exc">${hl(re ? snippet(it.note, re, 120) : it.note, re)}</p>` : ''}
+      <div class="meta"><span class="badge">${KIND[it.kind] || 'Erledigen'}</span>${dueHtml(it)}${tagsHtml(it, 3)}</div>
+      ${it.draft && !it.done ? `<div class="draft"><p>${hl(re ? snippet(it.draft, re) : it.draft, re)}</p><button class="copy-btn" data-copy="${it.id}">${I.copy}Text kopieren</button></div>` : ''}
+    </div></article>`;
+}
+function cardNote(it, re, showType) {
+  return `<article class="card note" data-open="${it.id}">${pinHtml(it)}${showType ? typeline(it) : ''}
+    <h3 class="ttl">${hl(it.title || 'Ohne Titel', re)}</h3>
+    ${it.body ? `<p class="exc">${hl(re ? snippet(it.body, re) : it.body, re)}</p>` : ''}
+    <div class="meta"><span>${relTs(it.updated)}</span>${tagsHtml(it)}</div></article>`;
+}
+const card = (it, re, showType) => ({ said: cardSaid, task: cardTask, note: cardNote })[it.type](it, re, showType);
+
+function sortTasks(a, b) {
+  if (a.due && b.due && a.due !== b.due) return a.due < b.due ? -1 : 1;
+  if (!!a.due !== !!b.due) return a.due ? -1 : 1;
+  if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1;
+  return b.created - a.created;
+}
+
+/* ---------- Ansichten ---------- */
+function emptyBlock(title, text, type) {
+  return `<div class="empty"><h3>${title}</h3><p>${text}</p>${type ? `<button class="btn primary" data-new="${type}">Hinzufügen</button>` : ''}</div>`;
+}
+
+function renderHome() {
+  if (!db.items.length) {
+    return `<div class="empty" style="padding-top:44px">${I.shield.replace('<svg', '<svg style="width:36px;height:36px;color:var(--accent);margin-bottom:10px"')}
+      <h3>Dein Vault ist bereit</h3><p>Alles bleibt nur auf diesem Handy. Fang mit dem ersten Eintrag an.</p>
+      <div class="starter">
+        <button class="btn" data-new="said"><span class="dot" style="--c:var(--said)"></span>Etwas, das sie gesagt hat</button>
+        <button class="btn" data-new="task"><span class="dot" style="--c:var(--task)"></span>Aufgabe: sagen, fragen, schicken</button>
+        <button class="btn" data-new="note"><span class="dot" style="--c:var(--note)"></span>Notiz zu einem Thema</button>
+      </div></div>`;
+  }
+  const said = db.items.filter(i => i.type === 'said');
+  const open = db.items.filter(i => i.type === 'task' && !i.done).sort(sortTasks);
+  const notes = db.items.filter(i => i.type === 'note');
+  const pinned = db.items.filter(i => i.pinned && !(i.type === 'task' && i.done)).sort((a, b) => b.updated - a.updated);
+  const nextIds = new Set(open.slice(0, 4).map(i => i.id));
+  const recent = [...db.items].filter(i => !i.pinned && !nextIds.has(i.id)).sort((a, b) => b.created - a.created).slice(0, 5);
+  const tags = tagCounts().slice(0, 24);
+  const lb = db.settings.lastBackup;
+  const needBackup = db.items.length >= 3 && (!lb || Date.now() - lb > 14 * 864e5);
+
+  let h = `<div class="tiles">
+    <button class="tile" data-tab="said"><b>${said.length}</b><span><span class="dot" style="--c:var(--said)"></span>Gesagt</span></button>
+    <button class="tile" data-tab="task"><b>${open.length}</b><span><span class="dot" style="--c:var(--task)"></span>Offen</span></button>
+    <button class="tile" data-tab="note"><b>${notes.length}</b><span><span class="dot" style="--c:var(--note)"></span>Notizen</span></button>
+  </div>`;
+  if (needBackup) h += `<button class="banner" data-settings>${I.down}<span>${lb ? 'Letztes Backup ist über 2 Wochen her.' : 'Noch kein Backup gemacht.'} Jetzt sichern →</span></button>`;
+  const list = items => `<div class="list">${items.map(rowHtml).join('')}</div>`;
+  if (open.length) h += `<div class="sec-h"><h2>Als Nächstes</h2><button class="more" data-tab="task">Alle ${open.length} →</button></div>` + list(open.slice(0, 4));
+  if (pinned.length) h += `<div class="sec-h"><h2>Angeheftet</h2></div>` + list(pinned);
+  if (recent.length) h += `<div class="sec-h"><h2>Zuletzt gespeichert</h2></div>` + list(recent);
+  if (tags.length) h += `<div class="sec-h"><h2>Schlagwörter</h2></div><div class="tagcloud">${tags.map(([t, n]) => `<button class="chip" data-q="#${esc(t)}">#${esc(t)} <small>${n}</small></button>`).join('')}</div>`;
+  return h;
+}
+
+// Kompakte Zeile für die Übersicht: eine Zeile Titel, eine Zeile Infos.
+function rowHtml(it) {
+  const looksDone = it.done || pending.has(it.id);
+  let lead, title, sub = [], trail = '';
+  if (it.type === 'task') {
+    lead = `<button class="chk" data-toggle="${it.id}" aria-label="${looksDone ? 'Wieder öffnen' : 'Erledigt'}">${looksDone ? I.check : ''}</button>`;
+    title = `<span class="r-ttl">${esc(it.title)}</span>`;
+    sub.push(`<span style="color:var(--task)">${KIND[it.kind] || 'Erledigen'}</span>`);
+    const d = dueHtml(it); if (d) sub.push(d);
+    if (it.note) sub.push('Notiz');
+    if (it.draft && !it.done) trail = `<button class="r-copy" data-copy="${it.id}" aria-label="Vorgeschriebenen Text kopieren">${I.copy}</button>`;
+  } else {
+    lead = `<span class="r-ic" style="color:${TYPE[it.type].c}">${I[it.type]}</span>`;
+    if (it.type === 'said') {
+      title = `<span class="r-ttl r-quote">„${esc(it.body.replace(/\s+/g, ' '))}“</span>`;
+      sub.push(fmtISO(it.date));
+    } else {
+      title = `<span class="r-ttl">${esc(it.title || (it.body || '').split('\n')[0] || 'Ohne Titel')}</span>`;
+      sub.push(relTs(it.updated));
+    }
+    itemTags(it).slice(0, 2).forEach(t => sub.push(`<span style="color:var(--accent-2)">#${esc(t)}</span>`));
+  }
+  const pin = it.pinned ? `<span class="r-pin">${I.pin}</span>` : '';
+  return `<article class="row${looksDone ? ' done' : ''}" data-open="${it.id}" data-card="${it.id}">
+    <div class="r-lead">${lead}</div>
+    <div class="r-main">${title}<span class="r-sub">${pin}${sub.join('<span class="sep">·</span>')}</span></div>
+    ${trail}</article>`;
+}
+
+function renderSaid() {
+  const items = db.items.filter(i => i.type === 'said').sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.created - a.created);
+  let h = `<div class="page-h"><h1>Was sie gesagt hat</h1><p>${items.length} ${items.length === 1 ? 'Eintrag' : 'Einträge'}</p></div>`;
+  if (!items.length) return h + emptyBlock('Noch nichts gespeichert', 'Halte fest, was sie dir erzählt: Wünsche, Lieblingssachen, wichtige Momente.', 'said');
+  let last = '';
+  for (const it of items) {
+    const m = it.date ? new Date(it.date + 'T12:00').toLocaleDateString('de-CH', { month: 'long', year: 'numeric' }) : 'Ohne Datum';
+    if (m !== last) { h += `<div class="group-h">${m}</div>`; last = m; }
+    h += cardSaid(it);
+  }
+  return h;
+}
+
+function renderTasks() {
+  const all = db.items.filter(i => i.type === 'task');
+  const open = all.filter(i => !i.done), done = all.filter(i => i.done);
+  let h = `<div class="page-h"><h1>Aufgaben</h1><p>Was du ihr sagen, fragen oder schicken willst</p></div>
+    <div class="seg"><button data-taskfilter="open" class="${st.taskFilter === 'open' ? 'on' : ''}">Offen · ${open.length}</button><button data-taskfilter="done" class="${st.taskFilter === 'done' ? 'on' : ''}">Erledigt · ${done.length}</button></div>`;
+  if (st.taskFilter === 'open') {
+    if (!open.length) return h + emptyBlock(all.length ? 'Alles erledigt' : 'Keine Aufgaben', 'Leg fest, was du ihr noch sagen oder fragen willst – Texte kannst du gleich vorschreiben.', 'task');
+    for (const [k, label] of KINDS) {
+      const g = open.filter(i => (i.kind || 'machen') === k).sort(sortTasks);
+      if (g.length) h += `<div class="group-h">${label}</div>` + g.map(i => cardTask(i)).join('');
+    }
+  } else {
+    if (!done.length) return h + emptyBlock('Noch nichts erledigt', 'Erledigte Aufgaben landen hier.');
+    h += done.sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0)).map(i => cardTask(i)).join('');
+  }
+  return h;
+}
+
+function renderNotes() {
+  const all = db.items.filter(i => i.type === 'note');
+  const tags = tagCounts(all);
+  if (st.noteTag && !tags.some(([t]) => t === st.noteTag)) st.noteTag = null;
+  const items = all.filter(i => !st.noteTag || itemTags(i).includes(st.noteTag))
+    .sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.updated - a.updated);
+  let h = `<div class="page-h"><h1>Notizen</h1><p>Grössere Themen, Ideen, Pläne</p></div>`;
+  if (tags.length) h += `<div class="chips"><button class="chip ${!st.noteTag ? 'on' : ''}" data-notetag="">Alle <small>${all.length}</small></button>${tags.map(([t, n]) => `<button class="chip ${st.noteTag === t ? 'on' : ''}" data-notetag="${esc(t)}">#${esc(t)} <small>${n}</small></button>`).join('')}</div>`;
+  if (!all.length) return h + emptyBlock('Noch keine Notizen', 'Zum Beispiel „Geschenkideen“ mit #weihnachten – alles bleibt durchsuchbar.', 'note');
+  return h + items.map(i => cardNote(i)).join('');
+}
+
+function renderSearch() {
+  const re = tokRe(st.q);
+  const res = search(st.q);
+  const counts = { said: 0, task: 0, note: 0 };
+  res.forEach(i => counts[i.type]++);
+  const shown = st.qType === 'all' ? res : res.filter(i => i.type === st.qType);
+  let h = `<div class="chips" style="margin-top:4px">
+    <button class="chip ${st.qType === 'all' ? 'on' : ''}" data-qtype="all">Alle <small>${res.length}</small></button>
+    ${Object.keys(TYPE).map(t => `<button class="chip ${st.qType === t ? 'on' : ''}" data-qtype="${t}"><span class="dot" style="--c:${TYPE[t].c}"></span>${TYPE[t].label} <small>${counts[t]}</small></button>`).join('')}</div>`;
+  if (!shown.length) {
+    const tagHit = tokens(st.q).length === 1 && !st.q.trim().startsWith('#') && tagCounts().some(([t]) => norm(t).startsWith(norm(st.q.trim())));
+    return h + `<div class="empty"><h3>Nichts gefunden</h3><p>Keine Treffer für „${esc(st.q.trim())}“. Versuch ein anderes Wort${tagHit ? '' : ' oder einen #tag'}.</p></div>`;
+  }
+  return h + shown.map(i => card(i, re, true)).join('');
+}
+
+function render() {
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.tab === st.tab && !st.q.trim()));
+  $('#vaultName').textContent = db.settings.name || 'Vault';
+  $('#qClear').classList.toggle('on', !!st.q);
+  view.innerHTML = st.q.trim() ? renderSearch() : ({ home: renderHome, said: renderSaid, task: renderTasks, note: renderNotes })[st.tab]();
+}
+
+/* ---------- Sheet ---------- */
+let sheetOpen = false, sheetKind = '';
+function openSheet(html, kind) {
+  sheet.innerHTML = html; sheetKind = kind;
+  if (!sheetOpen) {
+    sheetOpen = true;
+    backdrop.classList.add('on'); sheet.classList.add('open'); sheet.setAttribute('aria-hidden', 'false');
+    history.pushState({ sheet: 1 }, '');
+  }
+  const b = sheet.querySelector('.sheet-b'); if (b) b.scrollTop = 0;
+  sheet.querySelectorAll('textarea').forEach(autoGrow);
+}
+function closeSheet(fromPop) {
+  if (!sheetOpen) return;
+  sheetOpen = false; sheetKind = '';
+  if (document.activeElement) document.activeElement.blur();
+  backdrop.classList.remove('on'); sheet.classList.remove('open'); sheet.setAttribute('aria-hidden', 'true');
+  if (!fromPop && history.state && history.state.sheet) history.back();
+}
+addEventListener('popstate', () => closeSheet(true));
+backdrop.addEventListener('click', () => { if (sheetKind !== 'editor') closeSheet(); });
+
+function autoGrow(t) { t.style.height = 'auto'; t.style.height = Math.max(t.scrollHeight + 2, 0) + 'px'; }
+
+/* ---------- Detail ---------- */
+function linkTags(text) {
+  return esc(text).replace(/#([\p{L}\p{N}_-]+)/gu, (m, t) => `<button class="ilt" data-q="#${t.toLowerCase()}">#${t}</button>`);
+}
+function openDetail(id) {
+  const it = byId(id); if (!it) return;
+  let b = `<div class="d-type"><span class="dot" style="--c:${TYPE[it.type].c}"></span>${TYPE[it.type].one}${it.type === 'said' && it.date ? ' · ' + fmtISO(it.date, true) : ''}${it.pinned ? ' · angeheftet' : ''}</div>`;
+  if (it.type === 'said') {
+    b += `<p class="d-quote">${linkTags(it.body)}</p>`;
+    if (it.context) b += `<div class="d-sec"><div class="lbl">Kontext</div><div class="d-body" style="margin:0;color:var(--muted)">${linkTags(it.context)}</div></div>`;
+  } else if (it.type === 'task') {
+    b += `<h2 class="d-title">${esc(it.title)}</h2><div class="meta"><span class="badge">${KIND[it.kind] || 'Erledigen'}</span>${dueHtml(it)}${it.done ? `<span>erledigt ${relTs(it.doneAt || it.updated)}</span>` : ''}</div>`;
+    if (it.note) b += `<div class="d-sec"><div class="lbl">Notiz</div><div class="d-body" style="margin:0;color:var(--muted)">${linkTags(it.note)}</div></div>`;
+    if (it.draft) b += `<div class="d-sec"><div class="lbl">Vorgeschriebener Text</div><div class="d-box">${esc(it.draft)}</div></div>`;
+  } else {
+    b += `<h2 class="d-title">${esc(it.title || 'Ohne Titel')}</h2>${it.body ? `<div class="d-body">${linkTags(it.body)}</div>` : ''}`;
+  }
+  const tags = itemTags(it);
+  if (tags.length) b += `<div class="d-sec"><div class="tagcloud">${tags.map(t => `<button class="tag" data-q="#${esc(t)}">#${esc(t)}</button>`).join('')}</div></div>`;
+
+  b += `<div class="actions">`;
+  if (it.type === 'task' && it.draft) b += `<button class="btn primary wide" data-copy="${it.id}">${I.copy}Text kopieren</button>`;
+  if (it.type === 'task') b += `<button class="btn ${it.done ? '' : 'primary'} wide" data-toggle="${it.id}">${I.check}${it.done ? 'Wieder öffnen' : 'Als erledigt markieren'}</button>`;
+  if (it.type !== 'task') b += `<button class="btn wide" data-copybody="${it.id}">${I.copy}Text kopieren</button>`;
+  b += `<button class="btn" data-pin="${it.id}">${I.pin}${it.pinned ? 'Lösen' : 'Anheften'}</button>
+        <button class="btn danger" data-del="${it.id}">${I.trash}Löschen</button></div>`;
+  b += `<div class="d-meta">Erstellt ${fullTs(it.created)}${it.updated - it.created > 60000 ? `<br>Geändert ${fullTs(it.updated)}` : ''}</div>`;
+
+  openSheet(`<div class="sheet-h"><button class="hbtn l" data-close>Schliessen</button><h2></h2><button class="hbtn strong r" data-edit="${it.id}">Bearbeiten</button></div><div class="sheet-b">${b}</div>`, 'detail');
+}
+
+/* ---------- Editor ---------- */
+function openEditor(it, type) {
+  editing = it || null;
+  edType = it ? it.type : (type || (st.tab === 'home' ? 'said' : st.tab));
+  edKind = (it && it.kind) || 'sagen';
+  const v = k => esc(it ? (it[k] ?? '') : '');
+  const tagStr = it && it.tags && it.tags.length ? it.tags.map(t => '#' + t).join(' ') : '';
+  const sugg = tagCounts().slice(0, 14).map(([t]) => `<button type="button" class="chip" data-addtag="${esc(t)}">#${esc(t)}</button>`).join('');
+
+  const html = `<div class="sheet-h"><button class="hbtn l" data-close>Abbrechen</button><h2>${it ? 'Bearbeiten' : 'Neuer Eintrag'}</h2><button class="hbtn strong r" data-save>Sichern</button></div>
+  <div class="sheet-b"><form id="ed" data-type="${edType}" novalidate onsubmit="return false">
+    ${it ? '' : `<div class="seg" role="tablist">${Object.keys(TYPE).map(t => `<button type="button" data-edtype="${t}" class="${t === edType ? 'on' : ''}">${TYPE[t].one}</button>`).join('')}</div>`}
+
+    <div class="grp g-said">
+      <div class="field"><label for="f-said-body">Was sie gesagt hat</label><textarea id="f-said-body" placeholder="z.B. Sie wünscht sich, einmal nach Lissabon zu reisen.">${v('body')}</textarea></div>
+      <div class="field"><label for="f-said-ctx">Kontext <span style="color:var(--faint)">(optional)</span></label><textarea id="f-said-ctx" style="min-height:80px" placeholder="Wann, wo, worum ging es?">${v('context')}</textarea></div>
+      <div class="field"><label for="f-said-date">Wann</label><input id="f-said-date" type="date" value="${it && it.type === 'said' ? v('date') : todayISO()}"></div>
+    </div>
+
+    <div class="grp g-task">
+      <div class="field"><label for="f-task-title">Aufgabe</label><input id="f-task-title" type="text" placeholder="z.B. Fragen, ob sie am Samstag Zeit hat" value="${it && it.type === 'task' ? v('title') : ''}" enterkeyhint="next"></div>
+      <div class="field"><span class="lbl">Art</span><div class="kinds">${KINDS.map(([k, l]) => `<button type="button" data-kind="${k}" class="${k === edKind ? 'on' : ''}">${l}</button>`).join('')}</div></div>
+      <div class="field"><label for="f-task-note">Notiz <span style="color:var(--faint)">(optional)</span></label><textarea id="f-task-note" style="min-height:80px" placeholder="Hintergrund, Ideen, worauf du achten willst …">${v('note')}</textarea></div>
+      <div class="field"><label for="f-task-draft">Vorgeschriebener Text <span style="color:var(--faint)">(optional)</span></label><textarea id="f-task-draft" class="big" placeholder="Schreib die Nachricht vor – später nur noch kopieren und schicken.">${v('draft')}</textarea></div>
+      <div class="field"><label for="f-task-due">Bis wann <span style="color:var(--faint)">(optional)</span></label><input id="f-task-due" type="date" value="${v('due')}"></div>
+    </div>
+
+    <div class="grp g-note">
+      <div class="field"><label for="f-note-title">Titel</label><input id="f-note-title" type="text" placeholder="z.B. Geschenkideen" value="${it && it.type === 'note' ? v('title') : ''}" enterkeyhint="next"></div>
+      <div class="field"><label for="f-note-body">Inhalt</label><textarea id="f-note-body" class="big" placeholder="Schreib frei – #hashtags im Text werden automatisch zu Schlagwörtern.">${it && it.type === 'note' ? v('body') : ''}</textarea></div>
+    </div>
+
+    <div class="field"><label for="f-tags">Schlagwörter</label><input id="f-tags" type="text" placeholder="#weihnachten #geschenk" value="${esc(tagStr)}" autocapitalize="none" autocorrect="off" spellcheck="false">
+      ${sugg ? `<div class="sugg">${sugg}</div>` : `<p class="hint">Mit Leerzeichen trennen. Hilft beim Filtern und Suchen.</p>`}</div>
+  </form></div>`;
+  openSheet(html, 'editor');
+}
+
+function fieldErr(id, msg) {
+  const el = $('#' + id); el.classList.add('invalid');
+  let e = el.parentElement.querySelector('.err');
+  if (!e) { e = document.createElement('p'); e.className = 'err'; el.after(e); }
+  e.textContent = msg; el.focus();
+  return false;
+}
+function saveEditor() {
+  const g = id => $('#' + id).value;
+  const tags = parseTags(g('f-tags'));
+  let data;
+  if (edType === 'said') {
+    const body = g('f-said-body').trim();
+    if (!body) return fieldErr('f-said-body', 'Schreib kurz auf, was sie gesagt hat.');
+    data = { body, context: g('f-said-ctx').trim(), date: g('f-said-date') || todayISO() };
+  } else if (edType === 'task') {
+    const title = g('f-task-title').trim();
+    if (!title) return fieldErr('f-task-title', 'Gib der Aufgabe einen kurzen Titel.');
+    data = { title, kind: edKind, note: g('f-task-note').trim(), draft: g('f-task-draft').replace(/\s+$/, ''), due: g('f-task-due') || null };
+  } else {
+    const title = g('f-note-title').trim(), body = g('f-note-body').replace(/\s+$/, '');
+    if (!title && !body.trim()) return fieldErr('f-note-title', 'Gib der Notiz einen Titel oder Inhalt.');
+    data = { title, body };
+  }
+  const now = Date.now();
+  if (editing) Object.assign(editing, data, { tags, updated: now });
+  else db.items.unshift({ id: uid(), type: edType, created: now, updated: now, pinned: false, done: false, ...data, tags });
+  save();
+  const wasEdit = !!editing; editing = null;
+  closeSheet();
+  if (!wasEdit && st.tab !== 'home' && !st.q) st.tab = edType;
+  render();
+  toast(wasEdit ? 'Änderungen gesichert' : 'Gespeichert');
+}
+
+/* ---------- Aktionen ---------- */
+async function copyText(text) {
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {}
+  if (!ok) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;opacity:0';
+    document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, text.length);
+    try { ok = document.execCommand('copy'); } catch (e) {}
+    ta.remove();
+  }
+  toast(ok ? 'Text kopiert' : 'Kopieren ging nicht – Text lange antippen und kopieren');
+  if (ok && navigator.vibrate) navigator.vibrate(8);
+}
+// Abhaken in Listen: sofort Haken zeigen, nach 2 s ausblenden. Nochmal tippen bricht ab.
+function checkInList(id, btn) {
+  const it = byId(id); if (!it) return;
+  const cardEl = btn.closest('.card,.row');
+  if (it.done) { toggleTask(id); return; }
+  if (pending.has(id)) {
+    clearTimeout(pending.get(id)); pending.delete(id);
+    cardEl.classList.remove('done'); btn.innerHTML = ''; btn.setAttribute('aria-label', 'Erledigt');
+    return;
+  }
+  cardEl.classList.add('done'); btn.innerHTML = I.check; btn.setAttribute('aria-label', 'Wieder öffnen');
+  btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop');
+  if (navigator.vibrate) navigator.vibrate(8);
+  pending.set(id, setTimeout(() => {
+    pending.delete(id);
+    it.done = true; it.doneAt = Date.now(); it.updated = Date.now();
+    save();
+    const els = document.querySelectorAll(`[data-card="${id}"]`);
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    els.forEach(el => { el.style.height = el.offsetHeight + 'px'; void el.offsetHeight; el.classList.add('leaving'); });
+    setTimeout(render, reduce || !els.length ? 0 : 320);
+    toast('Erledigt', { label: 'Rückgängig', fn: () => { it.done = false; it.doneAt = null; save(); render(); } });
+  }, 2000));
+}
+function toggleTask(id) {
+  const it = byId(id); if (!it) return;
+  if (pending.has(id)) { clearTimeout(pending.get(id)); pending.delete(id); }
+  it.done = !it.done; it.doneAt = it.done ? Date.now() : null; it.updated = Date.now();
+  save(); render();
+  if (sheetKind === 'detail') openDetail(id);
+  if (it.done) toast('Erledigt', { label: 'Rückgängig', fn: () => { it.done = false; it.doneAt = null; save(); render(); if (sheetKind === 'detail') openDetail(id); } });
+}
+function delItem(id) {
+  const idx = db.items.findIndex(x => x.id === id); if (idx < 0) return;
+  const [it] = db.items.splice(idx, 1);
+  save(); closeSheet(); render();
+  toast('Gelöscht', { label: 'Rückgängig', fn: () => { db.items.splice(idx, 0, it); save(); render(); } });
+}
+
+let toastT;
+function toast(msg, action) {
+  const el = $('#toast');
+  el.innerHTML = `<span>${esc(msg)}</span>${action ? `<button type="button">${esc(action.label)}</button>` : ''}`;
+  if (action) el.querySelector('button').onclick = () => { action.fn(); el.classList.remove('on'); };
+  el.classList.add('on');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => el.classList.remove('on'), action ? 5000 : 2000);
+}
+
+function setSearch(q) {
+  st.q = q; st.qType = 'all'; qInput.value = q;
+  closeSheet(); render(); scrollTo(0, 0);
+}
+
+/* ---------- Einstellungen & Backup ---------- */
+async function openSettings() {
+  let persisted = null;
+  try { persisted = navigator.storage && navigator.storage.persisted ? await navigator.storage.persisted() : null; } catch (e) {}
+  const lb = db.settings.lastBackup;
+  const n = t => db.items.filter(i => i.type === t).length;
+  openSheet(`<div class="sheet-h"><button class="hbtn l" data-close>Schliessen</button><h2>Einstellungen</h2><span></span></div>
+  <div class="sheet-b">
+    <div class="set-sec"><div class="field" style="margin:0"><label for="f-name">Name im Vault</label><input id="f-name" type="text" value="${esc(db.settings.name)}" enterkeyhint="done"></div></div>
+    <div class="set-sec"><h3>Backup</h3>
+      <p>Deine Einträge liegen nur auf diesem Handy, nirgends sonst. Sichere sie regelmässig, z.B. in die Dateien-App oder iCloud Drive.<br><span style="color:var(--faint)">Letztes Backup: ${lb ? fullTs(lb) : 'noch nie'}</span></p>
+      <div class="set-grid"><button class="btn primary" data-export>${I.down}Backup sichern</button><button class="btn" data-import>${I.up}Backup laden</button></div>
+      <p class="hint" style="margin-top:10px">Beim Laden werden Einträge zusammengeführt – nichts wird überschrieben, ausser es gibt eine neuere Version desselben Eintrags.</p></div>
+    <div class="set-sec"><h3>Inhalt</h3><p>${n('said')} gesagt · ${n('task')} Aufgaben · ${n('note')} Notizen · ${tagCounts().length} Schlagwörter${persisted === true ? '<br>Speicher ist als dauerhaft markiert.' : ''}</p></div>
+  </div>`, 'settings');
+}
+async function exportData() {
+  const data = JSON.stringify({ app: 'vault', version: 1, exported: new Date().toISOString(), items: db.items, settings: db.settings }, null, 2);
+  const name = `vault-backup-${todayISO()}.json`;
+  const file = new File([data], name, { type: 'application/json' });
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: 'Vault Backup' });
+      return markBackup();
+    }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(file); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  markBackup();
+}
+function markBackup() { db.settings.lastBackup = Date.now(); save(); render(); if (sheetKind === 'settings') openSettings(); toast('Backup erstellt'); }
+
+$('#importFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    if (!d || !Array.isArray(d.items)) throw new Error();
+    let added = 0, updated = 0;
+    for (const inc of d.items) {
+      if (!inc || !inc.id || !TYPE[inc.type]) continue;
+      const ex = byId(inc.id);
+      if (!ex) { db.items.push(inc); added++; }
+      else if ((inc.updated || 0) > (ex.updated || 0)) { Object.assign(ex, inc); updated++; }
+    }
+    if (d.settings && d.settings.name && !db.items.length) db.settings.name = d.settings.name;
+    save(); render(); if (sheetKind === 'settings') openSettings();
+    toast(`${added} neu, ${updated} aktualisiert`);
+  } catch (err) { toast('Diese Datei ist kein gültiges Vault-Backup'); }
+});
+
+/* ---------- Events ---------- */
+document.addEventListener('click', e => {
+  const t = e.target.closest('button,[data-open]');
+  if (!t) return;
+  const d = t.dataset;
+  if (d.copy !== undefined) { const it = byId(d.copy); if (it) copyText(it.draft || ''); return; }
+  if (d.copybody !== undefined) { const it = byId(d.copybody); if (it) copyText([it.title, it.body].filter(Boolean).join('\n\n')); return; }
+  if (d.toggle !== undefined) { if (t.closest('#sheet')) toggleTask(d.toggle); else checkInList(d.toggle, t); return; }
+  if (d.q !== undefined) { setSearch(d.q + ' '); return; }
+  if (d.tab) { st.tab = d.tab; if (st.q) { st.q = ''; qInput.value = ''; } render(); scrollTo(0, 0); return; }
+  if (d.new !== undefined) { openEditor(null, d.new || null); return; }
+  if (d.open) { openDetail(d.open); return; }
+  if (d.close !== undefined) { closeSheet(); return; }
+  if (d.edit) { openEditor(byId(d.edit)); return; }
+  if (d.save !== undefined) { saveEditor(); return; }
+  if (d.pin) { const it = byId(d.pin); it.pinned = !it.pinned; save(); render(); openDetail(it.id); toast(it.pinned ? 'Angeheftet' : 'Gelöst'); return; }
+  if (d.del) { delItem(d.del); return; }
+  if (d.taskfilter) { st.taskFilter = d.taskfilter; render(); return; }
+  if (d.notetag !== undefined) { st.noteTag = d.notetag || null; render(); return; }
+  if (d.qtype) { st.qType = d.qtype; render(); return; }
+  if (d.edtype) {
+    edType = d.edtype; $('#ed').dataset.type = edType;
+    sheet.querySelectorAll('[data-edtype]').forEach(b => b.classList.toggle('on', b.dataset.edtype === edType));
+    sheet.querySelectorAll('.grp textarea').forEach(autoGrow);
+    return;
+  }
+  if (d.kind) { edKind = d.kind; sheet.querySelectorAll('[data-kind]').forEach(b => b.classList.toggle('on', b.dataset.kind === edKind)); return; }
+  if (d.addtag) {
+    const inp = $('#f-tags'), cur = parseTags(inp.value);
+    if (!cur.includes(d.addtag)) { cur.push(d.addtag); inp.value = cur.map(x => '#' + x).join(' ') + ' '; }
+    t.classList.add('on'); return;
+  }
+  if (d.settings !== undefined) { openSettings(); return; }
+  if (d.export !== undefined) { exportData(); return; }
+  if (d.import !== undefined) { $('#importFile').click(); return; }
+});
+
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.tagName === 'TEXTAREA') autoGrow(t);
+  if (t.classList.contains('invalid')) { t.classList.remove('invalid'); const er = t.parentElement.querySelector('.err'); if (er) er.remove(); }
+  if (t.id === 'f-name') { db.settings.name = t.value.trim() || 'Vault'; save(); $('#vaultName').textContent = db.settings.name; }
+});
+
+let qT;
+qInput.addEventListener('input', () => { clearTimeout(qT); qT = setTimeout(() => { st.q = qInput.value; st.qType = 'all'; render(); }, 60); });
+qInput.addEventListener('keydown', e => { if (e.key === 'Enter') qInput.blur(); });
+$('#qClear').addEventListener('click', e => { e.preventDefault(); setSearch(''); qInput.focus(); });
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && sheetOpen) closeSheet(); });
+addEventListener('storage', e => { if (e.key === KEY) { db = load(); render(); } });
+
+render();
+if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
+})();
+</script>
+</body>
+</html>
